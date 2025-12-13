@@ -1,0 +1,28 @@
+# R session files
+.RData
+.Rhistory
+.Rapp.history
+
+# RStudio files
+.Rproj.user/
+
+# Temporary files
+*.RDataTmp
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# LaTeX / PDF build files
+*.aux
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+
+# Cache
+*_cache/
+*_files/

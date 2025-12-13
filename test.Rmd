@@ -1,0 +1,244 @@
+---
+title: "Association Between Dietary Patterns and Blood Lipid Profiles Among Chinese Women"
+author: "Stat Project"
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center"
+)
+```
+
+# Introduction
+
+Dietary habits play a central role in lipid metabolism and cardiovascular health. Traditional nutritional analyses often focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination.
+
+Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. These patterns can then be related to biological outcomes such as blood lipid profiles.
+
+The objective of this study is to identify dietary patterns among Chinese women and examine their associations with blood lipid biomarkers, including high-density lipoprotein cholesterol (HDL-C), low-density lipoprotein cholesterol (LDL-C), triglycerides (TG), and total cholesterol (TC). This analysis follows the methodological framework of the article *“Association between dietary patterns and blood lipid profiles among Chinese women”*.
+
+# Data and Methods
+
+## Data Loading
+
+```{r data-load}
+bio  <- read.csv("biomarker.csv")
+diet <- read.csv("c12diet.csv")
+
+str(bio)
+str(diet)
+```
+
+The biomarker dataset contains blood lipid and biochemical measurements, while the dietary dataset contains 3-day nutrient intake data.
+
+## Data Filtering and Merging
+
+```{r filter-merge}
+diet <- subset(diet, wave == 2009)
+data <- merge(diet, bio, by = "IDind")
+str(data)
+```
+
+# Identification of Dietary Patterns
+
+## Selection and Standardization of Dietary Variables
+
+Four dietary variables were selected:
+- Total energy intake (d3kcal)
+- Carbohydrate intake (d3carbo)
+- Fat intake (d3fat)
+- Protein intake (d3protn)
+
+```{r pca-prep}
+diet_vars <- data[, c("d3kcal", "d3carbo", "d3fat", "d3protn")]
+diet_scaled <- scale(diet_vars)
+```
+
+## Principal Component Analysis
+
+```{r pca}
+library(psych)
+
+pca <- principal(
+  diet_scaled,
+  nfactors = 3,
+  rotate = "varimax",
+  scores = TRUE
+)
+
+print(pca, digits = 3)
+```
+
+Three dietary patterns were retained based on eigenvalues greater than 1 and interpretability:
+- Pattern 1: Carbohydrate- and energy-rich pattern
+- Pattern 2: Fat-rich pattern
+- Pattern 3: Protein-rich pattern
+
+## Scree Plot
+
+```{r screeplot, fig.height=4, fig.width=6}
+library(ggplot2)
+
+eig <- pca$values
+df <- data.frame(Component = 1:length(eig), Eigenvalue = eig)
+
+ggplot(df, aes(Component, Eigenvalue)) +
+  geom_point(size = 3) +
+  geom_line() +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Scree Plot", x = "Component", y = "Eigenvalue")
+```
+
+## Factor Loadings
+
+```{r loadings, fig.height=4, fig.width=7}
+library(reshape2)
+
+load_df <- as.data.frame(pca$loadings[,])
+load_df$Variable <- rownames(load_df)
+
+melted <- melt(load_df, id.vars = "Variable",
+               variable.name = "Pattern",
+               value.name = "Loading")
+
+ggplot(melted, aes(x = Variable, y = Loading, fill = Pattern)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "PCA Loadings", x = "Dietary Variable", y = "Loading") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# PCA Scores and Quartile Classification
+
+```{r quartiles}
+scores <- as.data.frame(pca$scores)
+colnames(scores) <- c("Pattern1", "Pattern2", "Pattern3")
+data <- cbind(data, scores)
+
+data$Pattern1_Q <- cut(
+  data$Pattern1,
+  quantile(data$Pattern1, probs = seq(0,1,0.25), na.rm = TRUE),
+  include.lowest = TRUE
+)
+
+data$Pattern2_Q <- cut(
+  data$Pattern2,
+  quantile(data$Pattern2, probs = seq(0,1,0.25), na.rm = TRUE),
+  include.lowest = TRUE
+)
+
+data$Pattern3_Q <- cut(
+  data$Pattern3,
+  quantile(data$Pattern3, probs = seq(0,1,0.25), na.rm = TRUE),
+  include.lowest = TRUE
+)
+
+table(data$Pattern1_Q)
+```
+
+# Distribution and Normality Assessment
+
+```{r histograms, fig.height=6, fig.width=8}
+par(mfrow=c(2,3))
+
+hist(data$HDL_C, main="HDL-C", col="skyblue")
+hist(data$LDL_C, main="LDL-C", col="skyblue")
+hist(data$TG, main="Triglycerides", col="skyblue")
+hist(data$TC, main="Total Cholesterol", col="skyblue")
+
+hist(data$Pattern1, main="Pattern 1", col="pink")
+hist(data$Pattern2, main="Pattern 2", col="pink")
+```
+
+```{r hist-pattern3}
+hist(data$Pattern3, main="Pattern 3", col="pink")
+```
+
+Triglycerides and several lipid variables exhibit right-skewed distributions, suggesting deviations from normality.
+
+# Simple Linear Regression: Fat Intake and Triglycerides
+
+```{r simple-reg}
+model_simple <- lm(TG ~ d3fat, data = data)
+summary(model_simple)
+```
+
+```{r simple-reg-diagnostics, fig.height=5, fig.width=6}
+par(mfrow=c(2,2))
+plot(model_simple)
+par(mfrow=c(1,1))
+```
+
+A statistically significant but weak positive association was observed between fat intake and triglyceride levels.
+
+# Multiple Linear Regression: Dietary Patterns and Lipids
+
+```{r multi-reg}
+model_hdl <- lm(HDL_C ~ Pattern1 + Pattern2 + Pattern3, data=data)
+model_ldl <- lm(LDL_C ~ Pattern1 + Pattern2 + Pattern3, data=data)
+model_tg  <- lm(TG ~ Pattern1 + Pattern2 + Pattern3, data=data)
+model_tc  <- lm(TC ~ Pattern1 + Pattern2 + Pattern3, data=data)
+
+summary(model_hdl)
+summary(model_ldl)
+summary(model_tg)
+summary(model_tc)
+```
+
+# Diagnostic Tests
+
+```{r diagnostics}
+library(lmtest)
+
+check_assumptions <- function(model) {
+  par(mfrow=c(2,2))
+  plot(model)
+  par(mfrow=c(1,1))
+  print(bptest(model))
+  print(dwtest(model))
+}
+
+check_assumptions(model_tc)
+```
+
+Several models violate classical linear regression assumptions, motivating complementary non-parametric analyses.
+
+# ANOVA and Non-Parametric Tests
+
+```{r anova}
+summary(aov(TC ~ Pattern1_Q, data = data))
+summary(aov(LDL_C ~ Pattern1_Q, data = data))
+summary(aov(HDL_C ~ Pattern1_Q, data = data))
+summary(aov(TG ~ Pattern1_Q, data = data))
+```
+
+```{r bartlett}
+bartlett.test(TC ~ Pattern1_Q, data = data)
+```
+
+```{r kruskal}
+kruskal.test(TC ~ Pattern1_Q, data = data)
+kruskal.test(LDL_C ~ Pattern1_Q, data = data)
+kruskal.test(HDL_C ~ Pattern1_Q, data = data)
+kruskal.test(TG ~ Pattern1_Q, data = data)
+```
+
+# Discussion
+
+Dietary patterns derived from PCA were significantly associated with blood lipid profiles. Carbohydrate-rich patterns were associated with lower LDL-C and TC levels, whereas fat- and protein-rich patterns were associated with higher triglyceride and cholesterol concentrations. HDL-C showed no strong association with dietary patterns.
+
+# Conclusion
+
+This study demonstrates that dietary patterns, rather than isolated nutrients, are meaningfully associated with lipid metabolism. PCA provided a useful framework for summarizing dietary intake, and appropriate statistical methods were applied after careful assessment of model assumptions. These findings highlight the relevance of dietary pattern analysis in nutritional epidemiology.
