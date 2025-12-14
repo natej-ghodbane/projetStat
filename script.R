@@ -1,5 +1,20 @@
 ############################################################
-# 1. LOAD DATA
+# PROJECT: Dietary Patterns & Blood Lipids
+############################################################
+
+
+############################################################
+# 1. LOAD PACKAGES
+############################################################
+
+library(psych)
+library(car)
+library(lmtest)
+library(ggplot2)
+
+
+############################################################
+# 2. LOAD & MERGE DATA
 ############################################################
 
 bio  <- read.csv("biomarker.csv")
@@ -7,25 +22,28 @@ diet <- read.csv("c12diet.csv")
 
 diet <- subset(diet, wave == 2009)
 data <- merge(diet, bio, by = "IDind")
+
 str(data)
 
+
 ############################################################
-# 2. PCA — Dietary Patterns
+# 3. PCA — DIETARY PATTERNS
 ############################################################
 
 diet_vars <- data[, c("d3kcal", "d3carbo", "d3fat", "d3protn")]
 diet_scaled <- scale(diet_vars)
 
-library(psych)
-pca <- principal(diet_scaled, nfactors = 3, rotate = "varimax")
+pca <- principal(diet_scaled, nfactors = 3, rotate = "varimax", scores = TRUE)
 print(pca, digits = 3)
 
 scores <- as.data.frame(pca$scores)
 colnames(scores) <- c("Pattern1", "Pattern2", "Pattern3")
+
 data <- cbind(data, scores)
 
+
 ############################################################
-# 3. QUARTILES NEST7A9HOM LEL ANOVA
+# 4. CREATE QUARTILES (FOR ANOVA)
 ############################################################
 
 data$Pattern1_Q <- cut(
@@ -46,98 +64,174 @@ data$Pattern3_Q <- cut(
   include.lowest = TRUE
 )
 
+
 ############################################################
-# 4. HISTOGRAMS 
+# 5. DISTRIBUTIONS & NORMALITY
 ############################################################
 
+## Histograms
 par(mfrow=c(2,3))
 
-hist(data$HDL_C, main="HDL Distribution", col="lightblue")
-hist(data$LDL_C, main="LDL Distribution", col="lightblue")
-hist(data$TG, main="TG Distribution", col="lightblue")
-hist(data$TC, main="TC Distribution", col="lightblue")
+hist(data$HDL_C, main="HDL-C", col="lightblue")
+hist(data$LDL_C, main="LDL-C", col="lightblue")
+hist(data$TG,    main="TG",    col="lightblue")
+hist(data$TC,    main="TC",    col="lightblue")
 
-hist(data$Pattern1, main="Pattern1 (Carbs)", col="pink")
-hist(data$Pattern2, main="Pattern2 (Fat)", col="pink")
-hist(data$Pattern3, main="Pattern3 (Protein)", col="pink")
+hist(data$Pattern1, main="Pattern1", col="pink")
+hist(data$Pattern2, main="Pattern2", col="pink")
+hist(data$Pattern3, main="Pattern3", col="pink")
+
 
 ############################################################
-# 5. SIMPLE REGRESSION 
+# 5bis. SHAPIRO–WILK ON RANDOM SUBSAMPLE (n ≤ 5000)
+############################################################
+
+set.seed(123)
+
+hdl_sample <- sample(na.omit(data$HDL_C), 5000)
+ldl_sample <- sample(na.omit(data$LDL_C), 5000)
+tg_sample  <- sample(na.omit(data$TG),    5000)
+tc_sample  <- sample(na.omit(data$TC),    5000)
+
+shapiro.test(hdl_sample)
+shapiro.test(ldl_sample)
+shapiro.test(tg_sample)
+shapiro.test(tc_sample)
+
+
+############################################################
+# 5ter. QQ-PLOTS FOR NORMALITY (FULL SAMPLE)
+############################################################
+
+par(mfrow = c(2,2))
+
+qqnorm(data$HDL_C, main="QQ-plot HDL-C"); qqline(data$HDL_C)
+qqnorm(data$LDL_C, main="QQ-plot LDL-C"); qqline(data$LDL_C)
+qqnorm(data$TG,    main="QQ-plot TG");    qqline(data$TG)
+qqnorm(data$TC,    main="QQ-plot TC");    qqline(data$TC)
+
+
+############################################################
+# 6. SIMPLE REGRESSION (PARAMETRIC)
 ############################################################
 
 model_simple <- lm(TG ~ d3fat, data = data)
 summary(model_simple)
 
 par(mfrow=c(2,2))
-plot(model_simple)  # Residuals, QQ, Scale-Location, Leverage
+plot(model_simple)
 
 ############################################################
-# 6. MULTIPLE REGRESSION 
+# Residual normality (Shapiro on subsample)
 ############################################################
 
-check_assumptions <- function(model) {
+set.seed(123)
+resid_sample <- sample(residuals(model_simple), 5000)
+shapiro.test(resid_sample)
+
+qqnorm(residuals(model_simple), main = "QQ-plot Residuals (TG ~ d3fat)")
+qqline(residuals(model_simple))
+
+############################################################
+# 7. MULTIPLE LINEAR REGRESSIONS
+############################################################
+
+check_assumptions <- function(model, seed = 123, n_shapiro = 5000) {
   
-  par(mfrow = c(2, 2))
+  par(mfrow = c(2,2))
   plot(model)
   
-  cat("\n--- Breusch-Pagan Test (Homoscedasticity) ---\n")
-  library(lmtest)
+  cat("\n--- Shapiro (Residuals, subsample) ---\n")
+  set.seed(seed)
+  res <- residuals(model)
+  res <- res[!is.na(res)]
+  
+  if (length(res) > n_shapiro) {
+    res <- sample(res, n_shapiro)
+  }
+  print(shapiro.test(res))
+  
+  cat("\n--- Breusch-Pagan (Homoscedasticity) ---\n")
   print(bptest(model))
   
-  cat("\n--- Durbin-Watson Test (Autocorrelation) ---\n")
+  cat("\n--- Durbin-Watson (Independence) ---\n")
   print(dwtest(model))
   
-  cat("\n--- Cook's Distance (Influential points) ---\n")
+  cat("\n--- Top Cook's Distance ---\n")
   cooks <- cooks.distance(model)
-  print(sort(cooks, decreasing = TRUE)[1:10])
+  print(sort(cooks, decreasing = TRUE)[1:5])
 }
 
-### HDL Model
+# HDL
 model_hdl <- lm(HDL_C ~ Pattern1 + Pattern2 + Pattern3, data = data)
 summary(model_hdl)
 check_assumptions(model_hdl)
 
-### LDL Model
+# LDL
 model_ldl <- lm(LDL_C ~ Pattern1 + Pattern2 + Pattern3, data = data)
 summary(model_ldl)
 check_assumptions(model_ldl)
 
-### TG Model
+# TG
 model_tg <- lm(TG ~ Pattern1 + Pattern2 + Pattern3, data = data)
 summary(model_tg)
 check_assumptions(model_tg)
 
-### TC Model
+# TC
 model_tc <- lm(TC ~ Pattern1 + Pattern2 + Pattern3, data = data)
 summary(model_tc)
 check_assumptions(model_tc)
 
+
 ############################################################
-# 7. ANOVA 
+# 8. LOG-TRANSFORMATION FOR SKEWED TG
 ############################################################
 
-### Example: Does TC differ across Pattern1 quartiles?
+data$log_TG <- log(data$TG)
 
-cat("\n========== ANOVA: TC ~ Pattern1_Q ==========\n")
-anova_tc_p1 <- aov(TC ~ Pattern1_Q, data = data)
-summary(anova_tc_p1)
+hist(data$log_TG, main="Log(TG)", col="orange")
 
-### Bartlett test for equality of variances 
-cat("\n--- Bartlett Test (Equal variances) ---\n")
-bartlett.test(TC ~ Pattern1_Q, data=data)
-
-### Boxplot for ANOVA visualization
-boxplot(TC ~ Pattern1_Q, data=data, col="lightgreen",
-        main="TC Differences Across Pattern 1 Quartiles",
-        ylab="Total Cholesterol", xlab="Pattern 1 Quartile")
-
-### ANOVA for LDL, HDL, TG 
-anova_ldl_p1 <- aov(LDL_C ~ Pattern1_Q, data=data)
-anova_hdl_p1 <- aov(HDL_C ~ Pattern1_Q, data=data)
-anova_tg_p1  <- aov(TG ~ Pattern1_Q,  data=data)
-
-summary(anova_ldl_p1)
-summary(anova_hdl_p1)
-summary(anova_tg_p1)
+model_log_tg <- lm(log_TG ~ Pattern1 + Pattern2 + Pattern3, data = data)
+summary(model_log_tg)
+plot(model_log_tg)
 
 
+############################################################
+# 9. ANOVA (PARAMETRIC)
+############################################################
+
+anova_tc <- aov(TC ~ Pattern1_Q, data = data)
+summary(anova_tc)
+
+# Homogeneity of variances
+bartlett.test(TC ~ Pattern1_Q, data = data)
+leveneTest(TC ~ Pattern1_Q, data = data)
+
+# Visualization
+boxplot(TC ~ Pattern1_Q, data = data,
+        col = "lightgreen",
+        main = "TC across Pattern1 Quartiles",
+        ylab = "Total Cholesterol")
+
+
+############################################################
+# 10. NON-PARAMETRIC ALTERNATIVE (Kruskal-Wallis)
+############################################################
+
+kruskal.test(TC ~ Pattern1_Q, data = data)
+kruskal.test(LDL_C ~ Pattern1_Q, data = data)
+kruskal.test(HDL_C ~ Pattern1_Q, data = data)
+kruskal.test(TG ~ Pattern1_Q,  data = data)
+
+
+############################################################
+# 11. CORRELATION: PEARSON vs SPEARMAN
+############################################################
+
+cor.test(data$TG, data$d3fat, method = "pearson")
+cor.test(data$TG, data$d3fat, method = "spearman")
+
+
+############################################################
+# END OF FILE
+############################################################

@@ -1,10 +1,9 @@
 ---
-title: "Association Between Dietary Patterns and Blood Lipid Profiles Among Chinese Women"
-author: "Stat Project"
 output:
   pdf_document:
     latex_engine: xelatex
     toc: true
+
     number_sections: true
   html_document:
     toc: true
@@ -33,6 +32,7 @@ knitr::opts_chunk$set(
   fig.align = "center"
 )
 ```
+
 
 # PART I: PROJECT DOCUMENTATION
 
@@ -236,6 +236,7 @@ Confidence Intervals & \texttt{confint()} & Parameter precision \\
 
 Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. Traditional nutritional analyses focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination. This analysis employs multivariate techniques to relate dietary patterns to blood lipid biomarkers (HDL-C, LDL-C, triglycerides, and total cholesterol).
 
+
 # Data and Methods
 
 ## Data Loading
@@ -261,7 +262,6 @@ cat("\n=== SAMPLE SIZE ===")
 cat("\nTotal participants after filtering (2009 wave):", nrow(data))
 cat("\nNumber of variables:", ncol(data))
 ```
-
 The final analytical sample consists of **`r nrow(data)` participants** from the 2009 wave.
 
 # Identification of Dietary Patterns
@@ -312,26 +312,11 @@ Three dietary patterns were retained based on eigenvalues greater than 1 and int
 
 Together, these three patterns account for **`r round(cumulative_variance[3], 1)`%** of the total variance in dietary intake, providing a comprehensive summary of dietary behaviors in this population.
 
-## Scree Plot
-
-```{r screeplot, fig.height=4, fig.width=6}
-library(ggplot2)
-
-eig <- pca$values
-df <- data.frame(Component = 1:length(eig), Eigenvalue = eig)
-
-ggplot(df, aes(Component, Eigenvalue)) +
-  geom_point(size = 3) +
-  geom_line() +
-  geom_hline(yintercept = 1, linetype = "dashed") +
-  theme_minimal() +
-  labs(title = "Scree Plot", x = "Component", y = "Eigenvalue")
-```
-
 ## Factor Loadings
 
 ```{r loadings, fig.height=4, fig.width=7}
 library(reshape2)
+library(ggplot2)
 
 load_df <- as.data.frame(pca$loadings[,])
 load_df$Variable <- rownames(load_df)
@@ -346,7 +331,7 @@ ggplot(melted, aes(x = Variable, y = Loading, fill = Pattern)) +
   labs(title = "PCA Loadings", x = "Dietary Variable", y = "Loading") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-
+\newpage
 # PCA Scores and Quartile Classification
 
 ```{r quartiles}
@@ -374,7 +359,7 @@ data$Pattern3_Q <- cut(
 
 table(data$Pattern1_Q)
 ```
-
+\newpage
 # Distribution and Normality Assessment
 
 ```{r histograms, fig.height=6, fig.width=8}
@@ -395,6 +380,8 @@ hist(data$Pattern3, main="Pattern 3", col="pink")
 
 Triglycerides and several lipid variables exhibit right-skewed distributions, suggesting deviations from normality.
 
+\newpage
+
 # Simple Linear Regression: Fat Intake and Triglycerides
 
 ```{r simple-reg}
@@ -410,6 +397,8 @@ par(mfrow=c(1,1))
 
 A statistically significant but weak positive association was observed between fat intake and triglyceride levels.
 
+\newpage
+
 # Multiple Linear Regression: Dietary Patterns and Lipids
 
 ```{r multi-reg}
@@ -423,7 +412,7 @@ summary(model_ldl)
 summary(model_tg)
 summary(model_tc)
 ```
-
+\newpage
 # Diagnostic Tests
 
 ```{r diagnostics}
@@ -441,6 +430,7 @@ check_assumptions(model_tc)
 ```
 
 Several models violate classical linear regression assumptions, motivating complementary non-parametric analyses.
+
 
 ---
 
@@ -634,13 +624,15 @@ kruskal.test(HDL_C ~ Pattern1_Q, data = data)
 kruskal.test(TG ~ Pattern1_Q, data = data)
 ```
 
-Both parametric (ANOVA) and non-parametric (Kruskal-Wallis) tests show consistent results, with significant differences in LDL-C, TG, and TC across Pattern 1 quartiles, but not for HDL-C.
+Bth parametric (ANOVA) and non-parametric (Kruskal-Wallis) tests show consistent results, with significant differences in LDL-C, TG, and TC across Pattern 1 quartiles, but not for HDL-C.
 
----
+
 
 # Discussion
 
 Dietary patterns derived from PCA were significantly associated with blood lipid profiles. Carbohydrate-rich patterns were associated with lower LDL-C and TC levels, whereas fat- and protein-rich patterns were associated with higher triglyceride and cholesterol concentrations. HDL-C showed no strong association with dietary patterns.
+
+\newpage
 
 # Conclusion
 
