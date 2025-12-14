@@ -1,0 +1,272 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{fontawesome5}
+
+% Colors for code and sections
+\definecolor{codebackground}{RGB}{245,245,245}
+\definecolor{sectioncolor}{RGB}{0,51,102}
+\definecolor{donecolor}{RGB}{34,139,34}
+\definecolor{improvementcolor}{RGB}{220,140,20}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% Code listings setup
+\lstset{
+    backgroundcolor=\color{codebackground},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    showstringspaces=false
+}
+
+% Custom commands
+\newcommand{\done}{\textcolor{donecolor}{\checkmark}}
+\newcommand{\improved}{\textcolor{improvementcolor}{\textbullet}}
+
+% Title information
+\title{\textbf{Statistics Project Report}\\
+\large Dietary Patterns and Blood Lipid Profiles Analysis\\
+\large Project Development and Implementation Documentation}
+
+\author{Statistics Course Project\\
+\today}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent
+This report documents the development, analysis, and enhancement of a comprehensive statistics project examining the association between dietary patterns and blood lipid profiles among Chinese women. The project utilizes Principal Component Analysis (PCA) for pattern identification, multiple regression analysis, ANOVA, and various diagnostic tests. This document details the original project state, tools and technologies employed, methodological improvements implemented across three development rounds, and the final enhanced analysis framework. The project demonstrates rigorous statistical methodology, professional results presentation, and reproducible research practices suitable for academic publication.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Project Overview}
+
+\vspace{0.5cm}
+
+\subsection{Project Description}
+
+\begin{tcolorbox}[colback=blue!5!white, colframe=blue!75!black, title=\textbf{Project Summary}]
+This project analyzes the association between \textbf{dietary patterns} and \textbf{blood lipid profiles} among Chinese women, replicating and extending the methodology of a published nutritional epidemiology study. The analysis employs multivariate statistical techniques to identify dietary patterns and examine their relationships with cardiovascular biomarkers.
+\end{tcolorbox}
+
+\vspace{0.3cm}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\faIcon{question-circle} \textbf{Core Research Question}]
+\large\textit{How do dietary patterns (derived from macronutrient intake) associate with blood lipid biomarkers in Chinese women?}
+\end{tcolorbox}
+
+\vspace{0.5cm}
+
+\subsection{Project Context and Source}
+
+\begin{itemize}[leftmargin=*, itemsep=0.3cm]
+    \item[\faIcon{github}] \textbf{Repository:} \href{https://github.com/natej-ghodbane/projetStat}{\textcolor{blue}{github.com/natej-ghodbane/projetStat}}
+    
+    \item[\faIcon{folder-open}] \textbf{Original State:} The project was provided as a foundational statistical analysis with:
+    \begin{itemize}[itemsep=0.15cm]
+        \item[\textcolor{sectioncolor}{\faIcon{file-code}}] R Markdown analysis file (\texttt{test.Rmd})
+        \item[\textcolor{sectioncolor}{\faIcon{file-code}}] Standalone R script (\texttt{script.R})
+        \item[\textcolor{sectioncolor}{\faIcon{database}}] Two CSV datasets (biomarker and dietary data)
+        \item[\textcolor{sectioncolor}{\faIcon{book}}] Comprehensive README documentation
+    \end{itemize}
+\end{itemize}
+
+\vspace{0.5cm}
+
+\subsection{Project Objectives}
+
+\subsubsection{Primary Statistical Objectives}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cp{12cm}}
+\toprule
+\textbf{\#} & \textbf{Objective} \\
+\midrule
+\textcolor{sectioncolor}{\textbf{1}} & \textbf{Pattern Identification:} Use Principal Component Analysis (PCA) to derive dietary patterns from macronutrient intake data \\
+\addlinespace
+\textcolor{sectioncolor}{\textbf{2}} & \textbf{Association Analysis:} Examine relationships between dietary patterns and four blood lipid biomarkers: \newline
+\textcolor{donecolor}{\textbullet} HDL-C (High-Density Lipoprotein Cholesterol) \newline
+\textcolor{donecolor}{\textbullet} LDL-C (Low-Density Lipoprotein Cholesterol) \newline
+\textcolor{donecolor}{\textbullet} TG (Triglycerides) \newline
+\textcolor{donecolor}{\textbullet} TC (Total Cholesterol) \\
+\addlinespace
+\textcolor{sectioncolor}{\textbf{3}} & \textbf{Quartile Comparisons:} Assess lipid level differences across dietary pattern adherence quartiles \\
+\addlinespace
+\textcolor{sectioncolor}{\textbf{4}} & \textbf{Methodological Rigor:} Apply appropriate parametric and non-parametric statistical methods with assumption checking \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+
+
+
+\section{Tools and Technologies}
+
+\subsection{Software Environment}
+
+\begin{table}[H]
+\centering
+\caption{Primary Software Tools}
+\begin{tabular}{p{3.5cm}p{10cm}}
+\toprule
+\textbf{Tool} & \textbf{Description} \\
+\midrule
+\textbf{R Statistical Software} & Industry-standard statistical computing environment (version 4.x) for all statistical analyses, data manipulation, and visualization \\
+\addlinespace
+\textbf{RStudio IDE} & Integrated development environment providing code editing, debugging, chunk execution, and document knitting for R programming \\
+\addlinespace
+\textbf{R Markdown} & Literate programming framework (\texttt{test.Rmd}) combining code, results, and narrative for reproducible research with PDF and HTML output \\
+\addlinespace
+
+\addlinespace
+\textbf{Git + GitHub} & Version control system with remote repository (\href{https://github.com/natej-ghodbane/projetStat}{natej-ghodbane/projetStat}) for code sharing and collaboration \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{R Packages and Libraries}
+
+\begin{table}[H]
+\centering
+\caption{Key R Packages Used in Analysis}
+\small
+\begin{tabular}{p{2.5cm}p{3.5cm}p{7cm}}
+\toprule
+\textbf{Package} & \textbf{Category} & \textbf{Purpose} \\
+\midrule
+\texttt{psych} & Multivariate Analysis & Principal Component Analysis with varimax rotation, factor score calculation, and dietary pattern identification \\
+\addlinespace
+\texttt{ggplot2} & Data Visualization & Grammar-of-graphics based plotting system for scree plots, factor loadings, and publication-quality graphics \\
+\addlinespace
+\texttt{reshape2} & Data Manipulation & Data frame reshaping and transformation using \texttt{melt()} for visualization preparation \\
+\addlinespace
+\texttt{lmtest} & Regression Diagnostics & Statistical tests including Breusch-Pagan (homoscedasticity) and Durbin-Watson (autocorrelation) \\
+\addlinespace
+\texttt{car} & Regression Diagnostics & Variance Inflation Factor (VIF) calculation for multicollinearity assessment (planned enhancement) \\
+\addlinespace
+\texttt{knitr} & Results Presentation & Dynamic report generation with \texttt{kable()} for professional table formatting and document creation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+\subsection{Statistical Methods Toolbox}
+
+\subsubsection{Implemented Techniques}
+
+\begin{table}[H]
+\centering
+\caption{Statistical Methods and R Implementation}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Method} & \textbf{R Function/Package} & \textbf{Purpose} \\
+\midrule
+PCA & \texttt{psych::principal()} & Dietary pattern extraction \\
+Standardization & \texttt{scale()} & Variable normalization \\
+Linear Regression & \texttt{lm()} & Pattern-lipid associations \\
+ANOVA & \texttt{aov()} & Group comparisons \\
+Post-hoc Tests & \texttt{TukeyHSD()} & Pairwise comparisons \\
+Chi-square Test & \texttt{bartlett.test()} & Variance homogeneity \\
+Kruskal-Wallis & \texttt{kruskal.test()} & Non-parametric ANOVA \\
+Confidence Intervals & \texttt{confint()} & Parameter precision \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Original Project Analysis}
+
+
+\subsection{Original Methodology Implemented}
+
+\subsubsection{Data Processing}
+
+\textbf{Implemented Steps:}
+\begin{enumerate}
+    \item \done~Data loading from CSV files
+    \item \done~Filtering to 2009 wave
+    \item \done~Dataset merging by participant ID
+    \item \done~Variable selection for PCA
+    \item \done~Z-score standardization
+\end{enumerate}
+
+\subsubsection{Statistical Analyses Present}
+
+\textbf{Multivariate Analysis:}
+\begin{itemize}
+    \item \done~Principal Component Analysis with varimax rotation
+    \item \done~Three-component extraction based on eigenvalues > 1
+    \item \done~Factor score calculation
+    \item \done~Quartile classification
+\end{itemize}
+
+\textbf{Visualizations:}
+\begin{itemize}
+    \item \done~Scree plot
+    \item \done~Factor loadings bar chart
+    \item \done~Distribution histograms
+\end{itemize}
+
+\textbf{Regression Analysis:}
+\begin{itemize}
+    \item \done~Simple linear regression (TG $\sim$ fat intake)
+    \item \done~Multiple regression (4 models for each lipid biomarker)
+    \item \done~Diagnostic plots
+\end{itemize}
+
+\textbf{Assumption Checking:}
+\begin{itemize}
+    \item \done~Breusch-Pagan test (homoscedasticity)
+    \item \done~Durbin-Watson test (autocorrelation)
+    \item \done~Cook's distance (influential points)
+    \item \done~Residual plots
+\end{itemize}
+
+\textbf{Group Comparisons:}
+\begin{itemize}
+    \item \done~One-way ANOVA across quartiles
+    \item \done~Bartlett test for equal variances
+    \item \done~Kruskal-Wallis non-parametric alternative
+\end{itemize}
+
+
+
+
+\end{document}
