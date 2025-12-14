@@ -3,12 +3,26 @@ title: "Association Between Dietary Patterns and Blood Lipid Profiles Among Chin
 author: "Stat Project"
 output:
   pdf_document:
+    latex_engine: xelatex
     toc: true
     number_sections: true
   html_document:
     toc: true
     toc_depth: 3
     number_sections: true
+header-includes:
+  - \usepackage{tcolorbox}
+  - \usepackage{fontawesome5}
+  - \usepackage{booktabs}
+  - \usepackage{xcolor}
+  - \usepackage{enumitem}
+  - \usepackage{float}
+  - \definecolor{codebackground}{RGB}{245,245,245}
+  - \definecolor{sectioncolor}{RGB}{0,51,102}
+  - \definecolor{donecolor}{RGB}{34,139,34}
+  - \definecolor{improvementcolor}{RGB}{220,140,20}
+  - \newcommand{\done}{\textcolor{donecolor}{\checkmark}}
+  - \newcommand{\improved}{\textcolor{improvementcolor}{\textbullet}}
 ---
 
 ```{r setup, include=FALSE}
@@ -20,13 +34,207 @@ knitr::opts_chunk$set(
 )
 ```
 
+# PART I: PROJECT DOCUMENTATION
+
+# Project Overview
+
+\vspace{0.5cm}
+
+## Project Description
+
+\begin{tcolorbox}[colback=blue!5!white, colframe=blue!75!black, title=\textbf{Project Summary}]
+This project analyzes the association between \textbf{dietary patterns} and \textbf{blood lipid profiles} among Chinese women, replicating and extending the methodology of a published nutritional epidemiology study. The analysis employs multivariate statistical techniques to identify dietary patterns and examine their relationships with cardiovascular biomarkers.
+\end{tcolorbox}
+
+\vspace{0.3cm}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!50!black, title=\faIcon{question-circle} \textbf{Core Research Question}]
+\large\textit{How do dietary patterns (derived from macronutrient intake) associate with blood lipid biomarkers in Chinese women?}
+\end{tcolorbox}
+
+\vspace{0.5cm}
+
+\newpage
+
+## Project Context and Source
+
+\begin{itemize}[leftmargin=*, itemsep=0.3cm]
+    \item[\faIcon{github}] \textbf{Repository:} \href{https://github.com/natej-ghodbane/projetStat}{\textcolor{blue}{github.com/natej-ghodbane/projetStat}}
+    
+    \item[\faIcon{folder-open}] \textbf{Original State:} The project was provided as a foundational statistical analysis with:
+    \begin{itemize}[itemsep=0.15cm]
+        \item[\textcolor{sectioncolor}{\faIcon{file-code}}] R Markdown analysis file (\texttt{test.Rmd})
+        \item[\textcolor{sectioncolor}{\faIcon{file-code}}] Standalone R script (\texttt{script.R})
+        \item[\textcolor{sectioncolor}{\faIcon{database}}] Two CSV datasets (biomarker and dietary data)
+        \item[\textcolor{sectioncolor}{\faIcon{book}}] Comprehensive README documentation
+    \end{itemize}
+\end{itemize}
+
+\vspace{0.5cm}
+
+## Project Objectives
+
+### Primary Statistical Objectives
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cp{12cm}}
+\toprule
+\textbf{\#} & \textbf{Objective} \\
+\midrule
+\textcolor{sectioncolor}{\textbf{1}} & \textbf{Pattern Identification:} Use Principal Component Analysis (PCA) to derive dietary patterns from macronutrient intake data \\
+\addlinespace
+\textcolor{sectioncolor}{\textbf{2}} & \textbf{Association Analysis:} Examine relationships between dietary patterns and four blood lipid biomarkers: \newline
+\textcolor{donecolor}{\textbullet} HDL-C (High-Density Lipoprotein Cholesterol) \newline
+\textcolor{donecolor}{\textbullet} LDL-C (Low-Density Lipoprotein Cholesterol) \newline
+\textcolor{donecolor}{\textbullet} TG (Triglycerides) \newline
+\textcolor{donecolor}{\textbullet} TC (Total Cholesterol) \\
+\addlinespace
+\textcolor{sectioncolor}{\textbf{3}} & \textbf{Quartile Comparisons:} Assess lipid level differences across dietary pattern adherence quartiles \\
+\addlinespace
+\textcolor{sectioncolor}{\textbf{4}} & \textbf{Methodological Rigor:} Apply appropriate parametric and non-parametric statistical methods with assumption checking \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+
+\newpage
+
+# Tools and Technologies
+
+## Software Environment
+
+\begin{table}[H]
+\centering
+\caption{Primary Software Tools}
+\begin{tabular}{p{3.5cm}p{10cm}}
+\toprule
+\textbf{Tool} & \textbf{Description} \\
+\midrule
+\textbf{R Statistical Software} & Industry-standard statistical computing environment (version 4.x) for all statistical analyses, data manipulation, and visualization \\
+\addlinespace
+\textbf{RStudio IDE} & Integrated development environment providing code editing, debugging, chunk execution, and document knitting for R programming \\
+\addlinespace
+\textbf{R Markdown} & Literate programming framework (\texttt{test.Rmd}) combining code, results, and narrative for reproducible research with PDF and HTML output \\
+\addlinespace
+\textbf{Git + GitHub} & Version control system with remote repository (\href{https://github.com/natej-ghodbane/projetStat}{natej-ghodbane/projetStat}) for code sharing and collaboration \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+## R Packages and Libraries
+
+\begin{table}[H]
+\centering
+\caption{Key R Packages Used in Analysis}
+\small
+\begin{tabular}{p{2.5cm}p{3.5cm}p{7cm}}
+\toprule
+\textbf{Package} & \textbf{Category} & \textbf{Purpose} \\
+\midrule
+\texttt{psych} & Multivariate Analysis & Principal Component Analysis with varimax rotation, factor score calculation, and dietary pattern identification \\
+\addlinespace
+\texttt{ggplot2} & Data Visualization & Grammar-of-graphics based plotting system for scree plots, factor loadings, and publication-quality graphics \\
+\addlinespace
+\texttt{reshape2} & Data Manipulation & Data frame reshaping and transformation using \texttt{melt()} for visualization preparation \\
+\addlinespace
+\texttt{lmtest} & Regression Diagnostics & Statistical tests including Breusch-Pagan (homoscedasticity) and Durbin-Watson (autocorrelation) \\
+\addlinespace
+\texttt{car} & Regression Diagnostics & Variance Inflation Factor (VIF) calculation for multicollinearity assessment (planned enhancement) \\
+\addlinespace
+\texttt{knitr} & Results Presentation & Dynamic report generation with \texttt{kable()} for professional table formatting and document creation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+## Statistical Methods Toolbox
+
+### Implemented Techniques
+
+\begin{table}[H]
+\centering
+\caption{Statistical Methods and R Implementation}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Method} & \textbf{R Function/Package} & \textbf{Purpose} \\
+\midrule
+PCA & \texttt{psych::principal()} & Dietary pattern extraction \\
+Standardization & \texttt{scale()} & Variable normalization \\
+Linear Regression & \texttt{lm()} & Pattern-lipid associations \\
+ANOVA & \texttt{aov()} & Group comparisons \\
+Post-hoc Tests & \texttt{TukeyHSD()} & Pairwise comparisons \\
+Chi-square Test & \texttt{bartlett.test()} & Variance homogeneity \\
+Kruskal-Wallis & \texttt{kruskal.test()} & Non-parametric ANOVA \\
+Confidence Intervals & \texttt{confint()} & Parameter precision \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+# Original Project State Assessment
+
+## Original Methodology Implemented
+
+### Data Processing
+
+\textbf{Implemented Steps:}
+\begin{enumerate}
+    \item \done~Data loading from CSV files
+    \item \done~Filtering to 2009 wave
+    \item \done~Dataset merging by participant ID
+    \item \done~Variable selection for PCA
+    \item \done~Z-score standardization
+\end{enumerate}
+
+### Statistical Analyses Present
+
+\textbf{Multivariate Analysis:}
+\begin{itemize}
+    \item \done~Principal Component Analysis with varimax rotation
+    \item \done~Three-component extraction based on eigenvalues > 1
+    \item \done~Factor score calculation
+    \item \done~Quartile classification
+\end{itemize}
+
+\textbf{Visualizations:}
+\begin{itemize}
+    \item \done~Scree plot
+    \item \done~Factor loadings bar chart
+    \item \done~Distribution histograms
+\end{itemize}
+
+\textbf{Regression Analysis:}
+\begin{itemize}
+    \item \done~Simple linear regression (TG $\sim$ fat intake)
+    \item \done~Multiple regression (4 models for each lipid biomarker)
+    \item \done~Diagnostic plots
+\end{itemize}
+
+\textbf{Assumption Checking:}
+\begin{itemize}
+    \item \done~Breusch-Pagan test (homoscedasticity)
+    \item \done~Durbin-Watson test (autocorrelation)
+    \item \done~Cook's distance (influential points)
+    \item \done~Residual plots
+\end{itemize}
+
+\textbf{Group Comparisons:}
+\begin{itemize}
+    \item \done~One-way ANOVA across quartiles
+    \item \done~Bartlett test for equal variances
+    \item \done~Kruskal-Wallis non-parametric alternative
+\end{itemize}
+
+\newpage
+
+# PART II: STATISTICAL ANALYSIS
+
 # Introduction
 
-Dietary habits play a central role in lipid metabolism and cardiovascular health. Traditional nutritional analyses often focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination.
-
-Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. These patterns can then be related to biological outcomes such as blood lipid profiles.
-
-The objective of this study is to identify dietary patterns among Chinese women and examine their associations with blood lipid biomarkers, including high-density lipoprotein cholesterol (HDL-C), low-density lipoprotein cholesterol (LDL-C), triglycerides (TG), and total cholesterol (TC). This analysis follows the methodological framework of the article *“Association between dietary patterns and blood lipid profiles among Chinese women”*.
+Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. Traditional nutritional analyses focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination. This analysis employs multivariate techniques to relate dietary patterns to blood lipid biomarkers (HDL-C, LDL-C, triglycerides, and total cholesterol).
 
 # Data and Methods
 
@@ -48,7 +256,13 @@ The biomarker dataset contains blood lipid and biochemical measurements, while t
 diet <- subset(diet, wave == 2009)
 data <- merge(diet, bio, by = "IDind")
 str(data)
+
+cat("\n=== SAMPLE SIZE ===")
+cat("\nTotal participants after filtering (2009 wave):", nrow(data))
+cat("\nNumber of variables:", ncol(data))
 ```
+
+The final analytical sample consists of **`r nrow(data)` participants** from the 2009 wave.
 
 # Identification of Dietary Patterns
 
@@ -78,12 +292,25 @@ pca <- principal(
 )
 
 print(pca, digits = 3)
+
+# Calculate variance explained
+variance_explained <- pca$values / sum(pca$values) * 100
+cumulative_variance <- cumsum(variance_explained)
+
+cat("\n=== VARIANCE EXPLAINED ===")
+cat("\nPattern 1:", round(variance_explained[1], 2), "%")
+cat("\nPattern 2:", round(variance_explained[2], 2), "%")
+cat("\nPattern 3:", round(variance_explained[3], 2), "%")
+cat("\nCumulative (3 patterns):", round(cumulative_variance[3], 2), "%\n")
 ```
 
 Three dietary patterns were retained based on eigenvalues greater than 1 and interpretability:
-- Pattern 1: Carbohydrate- and energy-rich pattern
-- Pattern 2: Fat-rich pattern
-- Pattern 3: Protein-rich pattern
+
+- **Pattern 1**: Carbohydrate- and energy-rich pattern (explains **`r round(variance_explained[1], 1)`%** of variance)
+- **Pattern 2**: Fat-rich pattern (explains **`r round(variance_explained[2], 1)`%** of variance)
+- **Pattern 3**: Protein-rich pattern (explains **`r round(variance_explained[3], 1)`%** of variance)
+
+Together, these three patterns account for **`r round(cumulative_variance[3], 1)`%** of the total variance in dietary intake, providing a comprehensive summary of dietary behaviors in this population.
 
 ## Scree Plot
 
@@ -215,18 +442,190 @@ check_assumptions(model_tc)
 
 Several models violate classical linear regression assumptions, motivating complementary non-parametric analyses.
 
+---
+
+# Results
+
+## Sample Characteristics
+
+```{r descriptive-stats}
+# Descriptive statistics for lipid biomarkers
+lipid_vars <- c("HDL_C", "LDL_C", "TG", "TC")
+
+desc_stats <- data.frame(
+  Variable = c("HDL-C (mmol/L)", "LDL-C (mmol/L)", "Triglycerides (mmol/L)", "Total Cholesterol (mmol/L)"),
+  N = sapply(data[lipid_vars], function(x) sum(!is.na(x))),
+  Mean = sapply(data[lipid_vars], mean, na.rm = TRUE),
+  SD = sapply(data[lipid_vars], sd, na.rm = TRUE),
+  Median = sapply(data[lipid_vars], median, na.rm = TRUE),
+  Min = sapply(data[lipid_vars], min, na.rm = TRUE),
+  Max = sapply(data[lipid_vars], max, na.rm = TRUE)
+)
+
+rownames(desc_stats) <- NULL
+
+library(knitr)
+kable(desc_stats, digits = 2, 
+      caption = "Table 1: Descriptive Statistics for Blood Lipid Biomarkers")
+```
+
+Table 1 presents descriptive statistics for the four blood lipid biomarkers examined in this study. The sample includes **`r nrow(data)` participants** with complete dietary and biomarker data from the 2009 wave.
+
+## Dietary Pattern Identification
+
+Principal component analysis with varimax rotation identified three distinct dietary patterns (Table 2).
+
+```{r pca-summary-table}
+# Create PCA summary table
+pca_summary <- data.frame(
+  Pattern = paste("Pattern", 1:3),
+  Description = c("Carbohydrate/Energy-rich", "Fat-rich", "Protein-rich"),
+  Variance_Explained = round(variance_explained[1:3], 2),
+  Cumulative_Variance = round(cumulative_variance[1:3], 2),
+  Eigenvalue = round(pca$values[1:3], 2)
+)
+
+kable(pca_summary, 
+      col.names = c("Pattern", "Description", "Variance (%)", "Cumulative (%)", "Eigenvalue"),
+      caption = "Table 2: Summary of Dietary Patterns from Principal Component Analysis")
+```
+
+The three patterns collectively explain **`r round(cumulative_variance[3], 1)`%** of the total variance in dietary intake, indicating that these patterns capture the major sources of dietary variation in this population.
+
+## Association Between Dietary Patterns and Blood Lipids
+
+### Multiple Linear Regression Results
+
+```{r regression-summary-table}
+# Extract regression results into a table with confidence intervals
+models <- list(
+  HDL_C = model_hdl,
+  LDL_C = model_ldl,
+  TG = model_tg,
+  TC = model_tc
+)
+
+# Function to extract key statistics with confidence intervals
+extract_results_with_ci <- function(model, outcome) {
+  coef_summary <- summary(model)$coefficients
+  ci <- confint(model)
+  r_squared <- summary(model)$r.squared
+  adj_r_squared <- summary(model)$adj.r.squared
+  
+  # Format coefficients with confidence intervals
+  format_coef_ci <- function(pattern_name) {
+    beta <- coef_summary[pattern_name, "Estimate"]
+    ci_lower <- ci[pattern_name, 1]
+    ci_upper <- ci[pattern_name, 2]
+    p_val <- coef_summary[pattern_name, "Pr(>|t|)"]
+    
+    beta_str <- paste0(round(beta, 3), " (", round(ci_lower, 3), ", ", round(ci_upper, 3), ")")
+    p_str <- ifelse(p_val < 0.001, "<0.001", round(p_val, 3))
+    
+    return(c(beta_str, p_str))
+  }
+  
+  pat1 <- format_coef_ci("Pattern1")
+  pat2 <- format_coef_ci("Pattern2")
+  pat3 <- format_coef_ci("Pattern3")
+  
+  results <- data.frame(
+    Outcome = outcome,
+    R_squared = round(r_squared, 3),
+    Adj_R_squared = round(adj_r_squared, 3),
+    Pattern1_coef = pat1[1],
+    Pattern1_p = pat1[2],
+    Pattern2_coef = pat2[1],
+    Pattern2_p = pat2[2],
+    Pattern3_coef = pat3[1],
+    Pattern3_p = pat3[2],
+    stringsAsFactors = FALSE
+  )
+  return(results)
+}
+
+regression_results_ci <- do.call(rbind, lapply(names(models), function(x) extract_results_with_ci(models[[x]], x)))
+
+kable(regression_results_ci,
+      col.names = c("Outcome", "R²", "Adj. R²", "β (95% CI)", "p", "β (95% CI)", "p", "β (95% CI)", "p"),
+      caption = "Table 3: Multiple Linear Regression Results - Coefficients with 95% Confidence Intervals")
+```
+
+**Key Findings:**
+
+- **HDL-C**: No significant associations with any dietary pattern (R² = `r round(summary(model_hdl)$r.squared, 3)`). The three dietary patterns collectively explain only `r round(summary(model_hdl)$r.squared * 100, 1)`% of HDL-C variance, suggesting HDL-C is influenced by other factors not captured by these dietary patterns.
+
+- **LDL-C**: Pattern 1 (carbohydrate-rich) shows a significant `r ifelse(coef(model_ldl)["Pattern1"] < 0, "negative", "positive")` association (β = `r round(coef(model_ldl)["Pattern1"], 3)`, 95% CI: `r round(confint(model_ldl)["Pattern1", 1], 3)` to `r round(confint(model_ldl)["Pattern1", 2], 3)`, p = `r round(summary(model_ldl)$coefficients["Pattern1", "Pr(>|t|)"], 4)`). **Practical significance**: A 1-SD increase in Pattern 1 score is associated with a `r abs(round(coef(model_ldl)["Pattern1"], 3))` mmol/L change in LDL-C. The model explains `r round(summary(model_ldl)$r.squared * 100, 1)`% of LDL-C variance.
+
+- **Triglycerides**: Pattern 2 (fat-rich) shows β = `r round(coef(model_tg)["Pattern2"], 3)` (95% CI: `r round(confint(model_tg)["Pattern2", 1], 3)` to `r round(confint(model_tg)["Pattern2", 2], 3)`, p = `r round(summary(model_tg)$coefficients["Pattern2", "Pr(>|t|)"], 4)`) and Pattern 3 (protein-rich) shows β = `r round(coef(model_tg)["Pattern3"], 3)` (95% CI: `r round(confint(model_tg)["Pattern3", 1], 3)` to `r round(confint(model_tg)["Pattern3", 2], 3)`, p = `r round(summary(model_tg)$coefficients["Pattern3", "Pr(>|t|)"], 4)`). Model R² = `r round(summary(model_tg)$r.squared, 3)`.
+
+- **Total Cholesterol**: Pattern 1 (β = `r round(coef(model_tc)["Pattern1"], 3)`, p = `r round(summary(model_tc)$coefficients["Pattern1", "Pr(>|t|)"], 4)`) and Pattern 2 (β = `r round(coef(model_tc)["Pattern2"], 3)`, p = `r round(summary(model_tc)$coefficients["Pattern2", "Pr(>|t|)"], 4)`) show significant associations. The model explains `r round(summary(model_tc)$r.squared * 100, 1)`% of TC variance, indicating moderate predictive ability.
+
+## Group Comparisons Across Dietary Pattern Quartiles
+
 # ANOVA and Non-Parametric Tests
 
 ```{r anova}
-summary(aov(TC ~ Pattern1_Q, data = data))
-summary(aov(LDL_C ~ Pattern1_Q, data = data))
-summary(aov(HDL_C ~ Pattern1_Q, data = data))
-summary(aov(TG ~ Pattern1_Q, data = data))
+# Perform ANOVA for each lipid biomarker
+anova_tc <- aov(TC ~ Pattern1_Q, data = data)
+anova_ldl <- aov(LDL_C ~ Pattern1_Q, data = data)
+anova_hdl <- aov(HDL_C ~ Pattern1_Q, data = data)
+anova_tg <- aov(TG ~ Pattern1_Q, data = data)
+
+cat("\n=== ANOVA RESULTS ===")
+cat("\n\nTotal Cholesterol:")
+print(summary(anova_tc))
+
+cat("\n\nLDL Cholesterol:")
+print(summary(anova_ldl))
+
+cat("\n\nHDL Cholesterol:")
+print(summary(anova_hdl))
+
+cat("\n\nTriglycerides:")
+print(summary(anova_tg))
 ```
 
-```{r bartlett}
-bartlett.test(TC ~ Pattern1_Q, data = data)
+### Post-hoc Tests (Tukey HSD)
+
+For biomarkers showing significant ANOVA results, we perform Tukey's Honest Significant Difference test to identify which specific quartile pairs differ significantly.
+
+```{r tukey-posthoc}
+# Tukey HSD for Total Cholesterol
+cat("\n=== TUKEY HSD: TOTAL CHOLESTEROL ===")
+tukey_tc <- TukeyHSD(anova_tc)
+print(tukey_tc)
+
+# Tukey HSD for LDL Cholesterol
+cat("\n\n=== TUKEY HSD: LDL CHOLESTEROL ===")
+tukey_ldl <- TukeyHSD(anova_ldl)
+print(tukey_ldl)
+
+# Tukey HSD for Triglycerides
+cat("\n\n=== TUKEY HSD: TRIGLYCERIDES ===")
+tukey_tg <- TukeyHSD(anova_tg)
+print(tukey_tg)
 ```
+
+The Tukey HSD test identifies specific quartile pairs that differ significantly (p < 0.05). Confidence intervals not crossing zero indicate significant differences between those quartile groups.
+
+### Variance Homogeneity Testing
+
+```{r bartlett}
+cat("\n=== BARTLETT TEST FOR EQUAL VARIANCES ===")
+cat("\n\nTotal Cholesterol:")
+print(bartlett.test(TC ~ Pattern1_Q, data = data))
+
+cat("\n\nLDL Cholesterol:")
+print(bartlett.test(LDL_C ~ Pattern1_Q, data = data))
+
+cat("\n\nTriglycerides:")
+print(bartlett.test(TG ~ Pattern1_Q, data = data))
+```
+
+Bartlett's test assesses whether variances are equal across groups (homoscedasticity assumption for ANOVA). Significant results suggest unequal variances, supporting the use of non-parametric alternatives.
+
+### Non-Parametric Tests (Kruskal-Wallis)
 
 ```{r kruskal}
 kruskal.test(TC ~ Pattern1_Q, data = data)
@@ -234,6 +633,10 @@ kruskal.test(LDL_C ~ Pattern1_Q, data = data)
 kruskal.test(HDL_C ~ Pattern1_Q, data = data)
 kruskal.test(TG ~ Pattern1_Q, data = data)
 ```
+
+Both parametric (ANOVA) and non-parametric (Kruskal-Wallis) tests show consistent results, with significant differences in LDL-C, TG, and TC across Pattern 1 quartiles, but not for HDL-C.
+
+---
 
 # Discussion
 
