@@ -2,8 +2,7 @@
 output:
   pdf_document:
     latex_engine: xelatex
-    toc: true
-
+    toc: false
     number_sections: true
   html_document:
     toc: true
@@ -33,8 +32,36 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{=latex}
+\begin{titlepage}
+    \centering
+    
+    \vspace*{0.35\textheight}
+    
+    {\LARGE \bfseries
+    Association Between Dietary Patterns and Blood Lipid Profiles\\
+    Among Chinese Women\par}
+    
+    \vfill
+    
+    {\large
+    Ghalia Abdelkebir\\
+    Feryel Ifaoui\\
+    Asma Raddaoui\\
+    Fedi Hmida\\
+    Khalil Benyoussef\\
+    Natej Ghodbane\par}
+    
+\end{titlepage}
 
-# PART I: PROJECT DOCUMENTATION
+\clearpage
+\tableofcontents
+\clearpage
+```
+
+
+\part*{PROJECT DOCUMENTATION}
+\addcontentsline{toc}{part}{PROJECT DOCUMENTATION}
 
 # Project Overview
 
@@ -53,8 +80,6 @@ This project analyzes the association between \textbf{dietary patterns} and \tex
 \end{tcolorbox}
 
 \vspace{0.5cm}
-
-\newpage
 
 ## Project Context and Source
 
@@ -230,12 +255,22 @@ Confidence Intervals & \texttt{confint()} & Parameter precision \\
 
 \newpage
 
-# PART II: STATISTICAL ANALYSIS
+\part*{STATISTICAL ANALYSIS}
+\addcontentsline{toc}{part}{STATISTICAL ANALYSIS}
 
 # Introduction
 
-Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. Traditional nutritional analyses focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination. This analysis employs multivariate techniques to relate dietary patterns to blood lipid biomarkers (HDL-C, LDL-C, triglycerides, and total cholesterol).
+Dietary habits play a central role in lipid metabolism and cardiovascular health. Traditional nutritional analyses often focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination.
 
+Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. These patterns can then be related to biological outcomes such as blood lipid profiles.
+
+The objective of this study is to identify dietary patterns among Chinese women and examine their associations with blood lipid biomarkers, including high-density lipoprotein cholesterol (HDL-C), low-density lipoprotein cholesterol (LDL-C), triglycerides (TG), and total cholesterol (TC).
+
+Other biomarkers available in the dataset may be indirectly associated with lipid metabolism (such as glucose or insulin); however, they are not considered direct components of the blood lipid profile and were therefore not included in this analysis.
+
+Only data from the 2009 survey wave were included in the analysis, as both dietary intake and blood biomarker measurements were collected during this wave. This restriction ensures temporal consistency between dietary exposure and lipid outcomes and aligns with the methodology of the reference study.
+
+\newpage
 
 # Data and Methods
 
@@ -262,7 +297,10 @@ cat("\n=== SAMPLE SIZE ===")
 cat("\nTotal participants after filtering (2009 wave):", nrow(data))
 cat("\nNumber of variables:", ncol(data))
 ```
+
 The final analytical sample consists of **`r nrow(data)` participants** from the 2009 wave.
+
+\newpage
 
 # Identification of Dietary Patterns
 
@@ -317,7 +355,6 @@ Together, these three patterns account for **`r round(cumulative_variance[3], 1)
 ```{r loadings, fig.height=4, fig.width=7}
 library(reshape2)
 library(ggplot2)
-
 load_df <- as.data.frame(pca$loadings[,])
 load_df$Variable <- rownames(load_df)
 
@@ -331,8 +368,14 @@ ggplot(melted, aes(x = Variable, y = Loading, fill = Pattern)) +
   labs(title = "PCA Loadings", x = "Dietary Variable", y = "Loading") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
 \newpage
+
 # PCA Scores and Quartile Classification
+
+The factor scores derived from the Principal Component Analysis (PCA) were incorporated into the dataset to represent each participant’s degree of adherence to the identified dietary patterns.  
+These continuous scores were subsequently categorized into **quartiles**, allowing comparison of **blood lipid biomarkers** across increasing levels of adherence to each dietary pattern (from the lowest to the highest quartile).  
+This classification improves interpretability and enables the application of **comparative statistical tests**, such as ANOVA and the Kruskal–Wallis test.
 
 ```{r quartiles}
 scores <- as.data.frame(pca$scores)
@@ -358,8 +401,12 @@ data$Pattern3_Q <- cut(
 )
 
 table(data$Pattern1_Q)
+table(data$Pattern2_Q)
+table(data$Pattern3_Q)
 ```
+
 \newpage
+
 # Distribution and Normality Assessment
 
 ```{r histograms, fig.height=6, fig.width=8}
@@ -412,7 +459,9 @@ summary(model_ldl)
 summary(model_tg)
 summary(model_tc)
 ```
+
 \newpage
+
 # Diagnostic Tests
 
 ```{r diagnostics}
@@ -431,8 +480,9 @@ check_assumptions(model_tc)
 
 Several models violate classical linear regression assumptions, motivating complementary non-parametric analyses.
 
-
 ---
+
+\newpage
 
 # Results
 
@@ -553,51 +603,55 @@ kable(regression_results_ci,
 
 ## Group Comparisons Across Dietary Pattern Quartiles
 
+\newpage
+
 # ANOVA and Non-Parametric Tests
 
 ```{r anova}
-# Perform ANOVA for each lipid biomarker
-anova_tc <- aov(TC ~ Pattern1_Q, data = data)
-anova_ldl <- aov(LDL_C ~ Pattern1_Q, data = data)
-anova_hdl <- aov(HDL_C ~ Pattern1_Q, data = data)
-anova_tg <- aov(TG ~ Pattern1_Q, data = data)
+extract_anova <- function(aov_model, pattern_name) {
+  s <- summary(aov_model)[[1]]
+  data.frame(
+    Pattern = pattern_name,
+    Df = s[1, "Df"],
+    F_value = s[1, "F value"],
+    p_value = s[1, "Pr(>F)"]
+  )
+}
+run_anova_patterns <- function(response, biomarker_name, data) {
+  
+  a1 <- aov(as.formula(paste(response, "~ Pattern1_Q")), data = data)
+  a2 <- aov(as.formula(paste(response, "~ Pattern2_Q")), data = data)
+  a3 <- aov(as.formula(paste(response, "~ Pattern3_Q")), data = data)
+  
+  r1 <- extract_anova(a1, "Pattern1_Q")
+  r2 <- extract_anova(a2, "Pattern2_Q")
+  r3 <- extract_anova(a3, "Pattern3_Q")
+  
+  out <- rbind(r1, r2, r3)
+  out$Biomarker <- biomarker_name
+  out <- out[, c("Biomarker", "Pattern", "Df", "F_value", "p_value")]
+  out
+}
 
-cat("\n=== ANOVA RESULTS ===")
-cat("\n\nTotal Cholesterol:")
-print(summary(anova_tc))
 
-cat("\n\nLDL Cholesterol:")
-print(summary(anova_ldl))
+anova_tc  <- run_anova_patterns("TC",     "TC",     data)
+anova_tg  <- run_anova_patterns("TG",     "TG",     data)
+anova_hdl <- run_anova_patterns("HDL_C",  "HDL-C",  data)
+anova_ldl <- run_anova_patterns("LDL_C",  "LDL-C",  data)
 
-cat("\n\nHDL Cholesterol:")
-print(summary(anova_hdl))
+anova_summary_all <- rbind(
+  anova_tc,
+  anova_tg,
+  anova_hdl,
+  anova_ldl
+)
 
-cat("\n\nTriglycerides:")
-print(summary(anova_tg))
+anova_summary_all
 ```
 
-### Post-hoc Tests (Tukey HSD)
-
-For biomarkers showing significant ANOVA results, we perform Tukey's Honest Significant Difference test to identify which specific quartile pairs differ significantly.
-
-```{r tukey-posthoc}
-# Tukey HSD for Total Cholesterol
-cat("\n=== TUKEY HSD: TOTAL CHOLESTEROL ===")
-tukey_tc <- TukeyHSD(anova_tc)
-print(tukey_tc)
-
-# Tukey HSD for LDL Cholesterol
-cat("\n\n=== TUKEY HSD: LDL CHOLESTEROL ===")
-tukey_ldl <- TukeyHSD(anova_ldl)
-print(tukey_ldl)
-
-# Tukey HSD for Triglycerides
-cat("\n\n=== TUKEY HSD: TRIGLYCERIDES ===")
-tukey_tg <- TukeyHSD(anova_tg)
-print(tukey_tg)
-```
-
-The Tukey HSD test identifies specific quartile pairs that differ significantly (p < 0.05). Confidence intervals not crossing zero indicate significant differences between those quartile groups.
+One-way ANOVA revealed significant differences in total cholesterol (TC) and triglycerides (TG) across quartiles of all three dietary patterns (p < 0.01), indicating that lipid levels vary according to the degree of adherence to each pattern.
+For LDL-C, significant differences were observed across quartiles of Pattern1 and Pattern2, while no significant variation was found for Pattern3.
+In contrast, HDL-C showed a significant difference only across quartiles of Pattern1, with no significant association for Pattern2 or Pattern3
 
 ### Variance Homogeneity Testing
 
@@ -621,12 +675,63 @@ Bartlett's test assesses whether variances are equal across groups (homoscedasti
 kruskal.test(TC ~ Pattern1_Q, data = data)
 kruskal.test(LDL_C ~ Pattern1_Q, data = data)
 kruskal.test(HDL_C ~ Pattern1_Q, data = data)
-kruskal.test(TG ~ Pattern1_Q, data = data)
+kruskal.test(TG ~ Pattern1_Q,  data = data)
+
+kruskal.test(TC ~ Pattern2_Q, data = data)
+kruskal.test(LDL_C ~ Pattern2_Q, data = data)
+kruskal.test(HDL_C ~ Pattern2_Q, data = data)
+kruskal.test(TG ~ Pattern2_Q,  data = data)
+
+kruskal.test(TC ~ Pattern3_Q, data = data)
+kruskal.test(LDL_C ~ Pattern3_Q, data = data)
+kruskal.test(HDL_C ~ Pattern3_Q, data = data)
+kruskal.test(TG ~ Pattern3_Q,  data = data)
 ```
 
-Bth parametric (ANOVA) and non-parametric (Kruskal-Wallis) tests show consistent results, with significant differences in LDL-C, TG, and TC across Pattern 1 quartiles, but not for HDL-C.
+Kruskal–Wallis tests corroborated the ANOVA findings, showing significant associations of dietary pattern quartiles with TC and TG, partial associations with LDL-C, and limited associations with HDL-C.
 
+### Non-Parametric Tests (SPEARMAN)
+```{r SPEARMAN}
+extract_spearman <- function(x, y, var_x, var_y) {
+  test <- suppressWarnings(cor.test(x, y, method = "spearman"))
+  data.frame(
+    Variable_X = var_x,
+    Variable_Y = var_y,
+    rho = as.numeric(test$estimate),
+    p_value = test$p.value
+  )
+}
+spearman_results <- rbind(
+  # Fat
+  extract_spearman(data$TG,    data$d3fat,    "TG",    "Fat"),
+  extract_spearman(data$TC,    data$d3fat,    "TC",    "Fat"),
+  extract_spearman(data$LDL_C, data$d3fat,    "LDL-C", "Fat"),
+  extract_spearman(data$HDL_C, data$d3fat,    "HDL-C", "Fat"),
+  
+  # Carbohydrates
+  extract_spearman(data$TG,    data$d3carbo,  "TG",    "Carbohydrates"),
+  extract_spearman(data$TC,    data$d3carbo,  "TC",    "Carbohydrates"),
+  extract_spearman(data$LDL_C, data$d3carbo,  "LDL-C", "Carbohydrates"),
+  extract_spearman(data$HDL_C, data$d3carbo,  "HDL-C", "Carbohydrates"),
+  
+  # Protein
+  extract_spearman(data$TG,    data$d3protn,  "TG",    "Protein"),
+  extract_spearman(data$TC,    data$d3protn,  "TC",    "Protein"),
+  extract_spearman(data$LDL_C, data$d3protn,  "LDL-C", "Protein"),
+  extract_spearman(data$HDL_C, data$d3protn,  "HDL-C", "Protein")
+)
 
+spearman_results
+
+```
+
+Spearman correlation analyses showed statistically significant but weak associations between macronutrient intake and blood lipid biomarkers.
+Fat intake was positively correlated with TG, TC, and LDL-C, while no significant association was observed with HDL-C.
+Carbohydrate intake showed weak negative correlations with TC, LDL-C, and HDL-C, and no significant association with TG.
+Protein intake was weakly positively associated with TG and TC, whereas associations with LDL-C were not significant and weak negative correlations were observed with HDL-C.
+---
+
+\newpage
 
 # Discussion
 
