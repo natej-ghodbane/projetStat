@@ -1,9 +1,7 @@
 ---
-title: "Association Between Dietary Patterns and Blood Lipid Profiles Among Chinese Women"
-author: "groupe "
 output:
   pdf_document:
-    toc: true
+    toc: false
     number_sections: true
   html_document:
     toc: true
@@ -19,7 +17,31 @@ knitr::opts_chunk$set(
   fig.align = "center"
 )
 ```
-\newpage
+
+```{=latex}
+\begin{titlepage}
+    \centering
+    
+    \vspace*{0.35\textheight}
+    
+    {\LARGE \bfseries
+    Association Between Dietary Patterns and Blood Lipid Profiles\\
+    Among Chinese Women\par}
+    
+    \vfill
+    
+    {\large
+    Ghalia Abdelkebir\\
+    Feryel Ifaoui\\
+    Asma Raddaoui\\
+    Fedi Hmida\\
+    Khalil Benyoussef\\
+    Natej Ghodbane\par}
+    
+\end{titlepage}
+```
+
+
 # Introduction
 
 Dietary habits play a central role in lipid metabolism and cardiovascular health. Traditional nutritional analyses often focus on individual nutrients; however, this approach does not reflect real-life dietary behavior where nutrients are consumed in combination.
@@ -27,6 +49,10 @@ Dietary habits play a central role in lipid metabolism and cardiovascular health
 Dietary pattern analysis, particularly using Principal Component Analysis (PCA), allows identification of dominant eating patterns within a population. These patterns can then be related to biological outcomes such as blood lipid profiles.
 
 The objective of this study is to identify dietary patterns among Chinese women and examine their associations with blood lipid biomarkers, including high-density lipoprotein cholesterol (HDL-C), low-density lipoprotein cholesterol (LDL-C), triglycerides (TG), and total cholesterol (TC).
+
+Other biomarkers available in the dataset may be indirectly associated with lipid metabolism (such as glucose or insulin); however, they are not considered direct components of the blood lipid profile and were therefore not included in this analysis.
+
+Only data from the 2009 survey wave were included in the analysis, as both dietary intake and blood biomarker measurements were collected during this wave. This restriction ensures temporal consistency between dietary exposure and lipid outcomes and aligns with the methodology of the reference study.
 
 \newpage
 
